@@ -14,6 +14,7 @@ import json
 import os
 import sys
 from datetime import datetime, timezone
+from zoneinfo import ZoneInfo
 
 import requests
 from dotenv import load_dotenv
@@ -24,6 +25,7 @@ BASE = os.environ.get("API_BASE_URL")
 TOKEN = os.environ.get("API_KEY")
 ARTIFACT_DIR = "artifact"
 INSTRUCTOR_AUTHOR_ID = os.environ.get("INSTRUCTOR_ID")  # only trust check-in posts from the instructor
+CENTRAL = ZoneInfo("America/Chicago")  # handles CST/CDT automatically
 
 
 class PracticeHubClient:
@@ -70,11 +72,13 @@ def main():
         raise SystemExit("INSTRUCTOR_ID is not set - add it to .env locally or as a repo secret.")
 
     os.makedirs(ARTIFACT_DIR, exist_ok=True)
-    run_stamp = datetime.now(timezone.utc).strftime("%Y-%m-%dT%H-%M-%SZ")
+    now_central = datetime.now(timezone.utc).astimezone(CENTRAL)
+    run_stamp = now_central.strftime("%m/%d/%Y")
+    file_stamp = now_central.strftime("%m-%d-%Y")  # run_stamp has slashes, unsafe for filenames
     client = PracticeHubClient(BASE, TOKEN)
 
     posts = client.list_posts(tag="check-in", author=int(INSTRUCTOR_AUTHOR_ID), limit=50)
-    with open(f"{ARTIFACT_DIR}/posts_{run_stamp}.json", "w") as fh:
+    with open(f"{ARTIFACT_DIR}/posts_{file_stamp}.json", "w") as fh:
         json.dump(posts, fh, indent=2)
 
     result = {"run_stamp": run_stamp, "checkin_post": None, "status": None, "detail": None}
@@ -101,7 +105,7 @@ def main():
             result["detail"] = {"status_code": resp.status_code, "body": resp.text}
             print(f"Unexpected response ({resp.status_code}) commenting on post {post['id']}: {resp.text}")
 
-    with open(f"{ARTIFACT_DIR}/checkin_log_{run_stamp}.json", "w") as fh:
+    with open(f"{ARTIFACT_DIR}/checkin_log_{file_stamp}.json", "w") as fh:
         json.dump(result, fh, indent=2)
 
     if result["status"] == "error":
