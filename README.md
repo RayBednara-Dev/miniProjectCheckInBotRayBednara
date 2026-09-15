@@ -42,17 +42,8 @@ pip install -r requirements.txt
 
 * Register once at https://practice.fhsucyber.com (see the API Guide) to get
   an API token.
-* For local runs: create a `.env` file (git-ignored) in the project root with:
-  ```
-  API_BASE_URL=https://practice.fhsucyber.com
-  API_KEY=your-practice-hub-api-token
-  INSTRUCTOR_ID=7
-  ```
 * For the scheduled workflow, add all three as repository secrets (Settings
-  -> Secrets and variables -> Actions -> New repository secret):
-  * `API_BASE_URL` - `https://practice.fhsucyber.com`
-  * `API_KEY` - your Practice Hub API token
-  * `INSTRUCTOR_ID` - the instructor's Practice Hub account id (`7`)
+  -> Secrets and variables -> Actions -> New repository secret)
 
 ### Executing program
 
@@ -76,10 +67,6 @@ UTC date yet.
 ## Authors
 
 Ray Bednara (ray.bednara@gmail.com)
-
-## License
-
-This project is licensed under the [NAME HERE] License - see the LICENSE.md file for details
 
 ## AI Usage
 
