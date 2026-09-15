@@ -22,8 +22,11 @@ post on the INF601 Practice Hub, and saves the data it collected from the API.
 * Save the raw posts data and a summary of what happened into `artifact/`.
 
 The workflow in `.github/workflows/checkin.yml` runs this script daily on a
-cron schedule and uploads `artifact/` as a GitHub Actions build artifact, so
-each day's run has its own downloadable set of files on the Actions run page.
+cron schedule, uploads `artifact/` as a GitHub Actions build artifact for that
+run, and also commits the new files in `artifact/` back into the repo (the
+workflow is granted `contents: write` permission for this), so the collected
+data accumulates in git history over time instead of only living in each
+run's temporary artifact download.
 
 ## Getting Started
 

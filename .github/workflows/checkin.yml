@@ -37,3 +37,11 @@ jobs:
           name: checkin-data-${{ github.run_id }}
           path: artifact/
           if-no-files-found: warn
+
+      - name: Commit artifact files
+        run: |
+          git config user.name "github-actions[bot]"
+          git config user.email "github-actions[bot]@users.noreply.github.com"
+          git add artifact/
+          git diff --cached --quiet && echo "No new artifact files to commit" || git commit -m "Add check-in data for $(date -u +%Y-%m-%d)"
+          git push
