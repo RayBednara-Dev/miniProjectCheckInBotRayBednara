@@ -6,8 +6,10 @@ Each run:
    check-in-tagged posts other students may create.
 2. Posts a comment on it to record the check-in (handles the 423 Locked
    window-closed response instead of crashing).
-3. Saves the raw API data it collected into artifact/ so the workflow can
-   upload it as a build artifact.
+3. Saves just today's matched post (or null if none was found) into
+   artifact/ so each day's snapshot only reflects that day's data, plus a
+   log of what the run did. Any attachments on that post are downloaded
+   into artifact/files/.
 """
 
 import json
@@ -50,6 +52,28 @@ class PracticeHubClient:
             json={"body": body},
         )
 
+    def get_post(self, post_id):
+        resp = requests.get(f"{self.base}/api/v1/posts/{post_id}", headers=self.headers)
+        resp.raise_for_status()
+        return resp.json()
+
+    def download_attachment(self, download_url):
+        resp = requests.get(f"{self.base}{download_url}", headers=self.headers)
+        resp.raise_for_status()
+        return resp.content
+
+
+def download_attachments(client, post, files_dir, file_stamp):
+    os.makedirs(files_dir, exist_ok=True)
+    saved = []
+    for attachment in post.get("attachments", []):
+        content = client.download_attachment(attachment["download_url"])
+        filename = f"{file_stamp}_post{post['id']}_{attachment['filename']}"
+        with open(os.path.join(files_dir, filename), "wb") as fh:
+            fh.write(content)
+        saved.append(filename)
+    return saved
+
 
 def find_todays_checkin(posts):
     today = datetime.now(timezone.utc).date()
@@ -78,17 +102,21 @@ def main():
     client = PracticeHubClient(BASE, TOKEN)
 
     posts = client.list_posts(tag="check-in", author=int(INSTRUCTOR_AUTHOR_ID), limit=50)
+    post = find_todays_checkin(posts)
+    if post is not None:
+        post = client.get_post(post["id"])  # fetch full post, which includes attachments
+
     with open(f"{ARTIFACT_DIR}/posts_{file_stamp}.json", "w") as fh:
-        json.dump(posts, fh, indent=2)
+        json.dump(post, fh, indent=2)
 
     result = {"run_stamp": run_stamp, "checkin_post": None, "status": None, "detail": None}
 
-    post = find_todays_checkin(posts)
     if post is None:
         result["status"] = "no_post_found"
         print("No check-in post found for today (UTC). Data saved, nothing to comment on.")
     else:
-        result["checkin_post"] = {"id": post["id"], "title": post["title"]}
+        saved_files = download_attachments(client, post, f"{ARTIFACT_DIR}/files", file_stamp)
+        result["checkin_post"] = {"id": post["id"], "title": post["title"], "downloaded_files": saved_files}
         comment_body = f"Checked in via GitHub Actions on {run_stamp}"
         resp = client.add_comment(post["id"], comment_body)
 
