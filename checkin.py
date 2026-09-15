@@ -1,16 +1,7 @@
-"""Daily check-in bot for the INF601 Practice Hub.
+# INF601 - Advanced Programming in Python
+#Ray Bednara
+# Mini Project Check-in Bot
 
-Each run:
-1. Fetches recent posts tagged "check-in" from the instructor (author id
-   from INSTRUCTOR_ID) and finds today's post (by UTC date), ignoring any
-   check-in-tagged posts other students may create.
-2. Posts a comment on it to record the check-in (handles the 423 Locked
-   window-closed response instead of crashing).
-3. Saves just today's matched post (or null if none was found) into
-   artifact/ so each day's snapshot only reflects that day's data, plus a
-   log of what the run did. Any attachments on that post are downloaded
-   into artifact/files/.
-"""
 
 import json
 import os
