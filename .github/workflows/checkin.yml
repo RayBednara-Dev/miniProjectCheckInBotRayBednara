@@ -1,5 +1,8 @@
 name: Daily Check-In
 
+permissions:
+  contents: write
+
 on:
   schedule:
     # 13:00 UTC every day. GitHub Actions cron runs in UTC.
