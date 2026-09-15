@@ -10,9 +10,12 @@ post on the INF601 Practice Hub, and saves the data it collected from the API.
 
 ## Description
 
-`checkin.py` calls the Practice Hub API (https://practice.fhsucyber.com) to:
+`checkin.py` calls the Practice Hub API to:
 
-* Fetch recent posts tagged `check-in` and pick out today's post (by UTC date).
+* Fetch recent posts tagged `check-in` from the instructor's account
+  (author id read from `INSTRUCTOR_ID`) and pick out today's post (by UTC
+  date), so a check-in-tagged post from another student never gets
+  commented on by mistake.
 * Post a comment on it to record the check-in. Check-in posts only accept
   comments inside a time window; if the window is closed the API returns
   `423 Locked`, which the script logs instead of failing.
@@ -36,11 +39,13 @@ pip install -r requirements.txt
 
 * Register once at https://practice.fhsucyber.com (see the API Guide) to get
   an API token.
-* For local runs: copy `.env.example` to `.env` and paste your token in as
-  `API_KEY`.
-* For the scheduled workflow: add your token as a repository secret named
-  `API_KEY` (Settings -> Secrets and variables -> Actions -> New repository
-  secret).
+* For local runs: copy `.env.example` to `.env` and fill in `API_BASE_URL`,
+  `API_KEY`, and `INSTRUCTOR_ID`.
+* For the scheduled workflow, add all three as repository secrets (Settings
+  -> Secrets and variables -> Actions -> New repository secret):
+  * `API_BASE_URL` - `https://practice.fhsucyber.com`
+  * `API_KEY` - your Practice Hub API token
+  * `INSTRUCTOR_ID` - the instructor's Practice Hub account id (`7`)
 
 ### Executing program
 

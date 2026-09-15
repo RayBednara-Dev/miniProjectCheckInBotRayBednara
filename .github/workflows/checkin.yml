@@ -23,7 +23,9 @@ jobs:
 
       - name: Run check-in bot
         env:
+          API_BASE_URL: ${{ secrets.API_BASE_URL }}
           API_KEY: ${{ secrets.API_KEY }}
+          INSTRUCTOR_ID: ${{ secrets.INSTRUCTOR_ID }}
         run: python checkin.py
 
       - name: Upload artifact

@@ -1,7 +1,9 @@
 """Daily check-in bot for the INF601 Practice Hub.
 
 Each run:
-1. Fetches recent posts tagged "check-in" and finds today's post (by UTC date).
+1. Fetches recent posts tagged "check-in" from the instructor (author id
+   from INSTRUCTOR_ID) and finds today's post (by UTC date), ignoring any
+   check-in-tagged posts other students may create.
 2. Posts a comment on it to record the check-in (handles the 423 Locked
    window-closed response instead of crashing).
 3. Saves the raw API data it collected into artifact/ so the workflow can
@@ -18,9 +20,10 @@ from dotenv import load_dotenv
 
 load_dotenv()
 
-BASE = "https://practice.fhsucyber.com"
+BASE = os.environ.get("API_BASE_URL")
 TOKEN = os.environ.get("API_KEY")
 ARTIFACT_DIR = "artifact"
+INSTRUCTOR_AUTHOR_ID = os.environ.get("INSTRUCTOR_ID")  # only trust check-in posts from the instructor
 
 
 class PracticeHubClient:
@@ -28,10 +31,12 @@ class PracticeHubClient:
         self.base = base_url.rstrip("/")
         self.headers = {"Authorization": f"Bearer {token}"}
 
-    def list_posts(self, tag=None, limit=50):
+    def list_posts(self, tag=None, author=None, limit=50):
         params = {"limit": limit}
         if tag:
             params["tag"] = tag
+        if author is not None:
+            params["author"] = author
         resp = requests.get(f"{self.base}/api/v1/posts", headers=self.headers, params=params)
         resp.raise_for_status()
         return resp.json()
@@ -57,14 +62,18 @@ def find_todays_checkin(posts):
 
 
 def main():
+    if not BASE:
+        raise SystemExit("API_BASE_URL is not set - add it to .env locally or as a repo secret.")
     if not TOKEN:
         raise SystemExit("API_KEY is not set - add it to .env locally or as a repo secret.")
+    if not INSTRUCTOR_AUTHOR_ID:
+        raise SystemExit("INSTRUCTOR_ID is not set - add it to .env locally or as a repo secret.")
 
     os.makedirs(ARTIFACT_DIR, exist_ok=True)
     run_stamp = datetime.now(timezone.utc).strftime("%Y-%m-%dT%H-%M-%SZ")
     client = PracticeHubClient(BASE, TOKEN)
 
-    posts = client.list_posts(tag="check-in", limit=50)
+    posts = client.list_posts(tag="check-in", author=int(INSTRUCTOR_AUTHOR_ID), limit=50)
     with open(f"{ARTIFACT_DIR}/posts_{run_stamp}.json", "w") as fh:
         json.dump(posts, fh, indent=2)
 
