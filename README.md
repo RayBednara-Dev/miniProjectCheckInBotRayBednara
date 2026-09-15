@@ -1,0 +1,75 @@
+### INF601 - Advanced Programming in Python
+### Ray Bednara
+### Scheduled Check-In Bot
+
+
+# Scheduled Check-In Bot
+
+A GitHub Actions workflow that runs once a day, comments on the day's check-in
+post on the INF601 Practice Hub, and saves the data it collected from the API.
+
+## Description
+
+`checkin.py` calls the Practice Hub API (https://practice.fhsucyber.com) to:
+
+* Fetch recent posts tagged `check-in` and pick out today's post (by UTC date).
+* Post a comment on it to record the check-in. Check-in posts only accept
+  comments inside a time window; if the window is closed the API returns
+  `423 Locked`, which the script logs instead of failing.
+* Save the raw posts data and a summary of what happened into `artifact/`.
+
+The workflow in `.github/workflows/checkin.yml` runs this script daily on a
+cron schedule and uploads `artifact/` as a GitHub Actions build artifact, so
+each day's run has its own downloadable set of files on the Actions run page.
+
+## Getting Started
+
+### Dependencies
+
+* Python 3.13
+* Install required libraries with:
+```
+pip install -r requirements.txt
+```
+
+### Installing
+
+* Register once at https://practice.fhsucyber.com (see the API Guide) to get
+  an API token.
+* For local runs: copy `.env.example` to `.env` and paste your token in as
+  `API_KEY`.
+* For the scheduled workflow: add your token as a repository secret named
+  `API_KEY` (Settings -> Secrets and variables -> Actions -> New repository
+  secret).
+
+### Executing program
+
+* Run locally:
+```
+python checkin.py
+```
+* Or trigger the workflow manually on GitHub: Actions tab -> Daily Check-In ->
+  Run workflow.
+* Otherwise it runs automatically every day at 13:00 UTC (adjust the cron
+  expression in `.github/workflows/checkin.yml` if your check-in window is at
+  a different time).
+
+## Help
+
+If a run logs `window_closed`, the check-in post's time window had already
+closed for the day; the data is still saved to `artifact/`. If a run logs
+`no_post_found`, no post with "check-in" in the title was created for that
+UTC date yet.
+
+## Authors
+
+Ray Bednara (ray.bednara@gmail.com)
+
+## License
+
+This project is licensed under the [NAME HERE] License - see the LICENSE.md file for details
+
+## AI Usage
+
+Claude Code was used to write `checkin.py` and the GitHub Actions workflow,
+based on the Practice Hub's API Guide.
