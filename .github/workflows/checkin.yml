@@ -4,9 +4,9 @@ permissions:
   contents: write
 
 on:
-  schedule:
+  #schedule:
     # 13:00 UTC every day. GitHub Actions cron runs in UTC.
-    - cron: "0 13 * * *"
+   # - cron: "0 13 * * *"
   workflow_dispatch: {}
 
 jobs:
